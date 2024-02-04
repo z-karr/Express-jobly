@@ -7,6 +7,7 @@ const {
 } = require("../expressError");
 const db = require("../db.js");
 const User = require("./user.js");
+
 const {
   commonBeforeAll,
   commonBeforeEach,
@@ -140,6 +141,7 @@ describe("get", function () {
       lastName: "U1L",
       email: "u1@email.com",
       isAdmin: false,
+      jobs: [1],
     });
   });
 
@@ -215,13 +217,50 @@ describe("remove", function () {
   test("works", async function () {
     await User.remove("u1");
     const res = await db.query(
-        "SELECT * FROM users WHERE username='u1'");
+      "SELECT * FROM users WHERE username='u1'");
     expect(res.rows.length).toEqual(0);
   });
 
   test("not found if no such user", async function () {
     try {
       await User.remove("nope");
+      fail();
+    } catch (err) {
+      expect(err instanceof NotFoundError).toBeTruthy();
+    }
+  });
+});
+
+
+
+/************************************** User.applyForJob */
+
+describe("User.applyForJob", function () {
+  test("works", async function () {
+    await User.applyForJob("u1", 2);
+    const jobApplicationsRes = await db.query(
+      `SELECT username, job_id
+       FROM applications
+       WHERE username = $1 AND job_id = $2`,
+      ["u1", 2]
+    );
+    expect(jobApplicationsRes.rows).toEqual([
+      { username: "u1", job_id: 2 },
+    ]);
+  });
+
+  test("not found if no such user", async function () {
+    try {
+      await User.applyForJob("nope", 1);
+      fail();
+    } catch (err) {
+      expect(err instanceof NotFoundError).toBeTruthy();
+    }
+  });
+
+  test("not found if no such job", async function () {
+    try {
+      await User.applyForJob("u1", 200);
       fail();
     } catch (err) {
       expect(err instanceof NotFoundError).toBeTruthy();

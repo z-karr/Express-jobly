@@ -134,6 +134,9 @@ class Company {
    *   where jobs is [{ id, title, salary, equity, companyHandle }, ...]
    *
    * Throws NotFoundError if not found.
+   * 
+   * Added Company associated jobs to res
+   * 
    **/
 
   static async get(handle) {
@@ -150,6 +153,20 @@ class Company {
     const company = companyRes.rows[0];
 
     if (!company) throw new NotFoundError(`No company: ${handle}`);
+
+    // Fetch jobs associated with the company
+    const jobsRes = await db.query(
+      `SELECT id,
+              title,
+              salary,
+              equity
+        FROM jobs
+        WHERE company_handle = $1`,
+      [handle]
+    )
+
+    // Include jobs data in the company object res
+    company.jobs = jobsRes.rows;
 
     return company;
   }

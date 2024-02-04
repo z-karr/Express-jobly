@@ -101,12 +101,32 @@ class Job {
             values.push(hasEquity);
         }
 
-        
+
         query += ` ORDER BY title`;
 
         const jobsRes = await db.query(query, values);
         return jobsRes.rows;
     }
+
+
+    static async findAllByCompany(companyHandle) {
+        const jobsRes = await db.query(
+            `SELECT id,
+              title,
+              salary,
+              equity,
+              company_handle AS "companyHandle"
+        FROM jobs
+        WHERE company_handle = $1`,
+            [companyHandle]
+        );
+
+        
+        const jobs = jobsRes.rows;
+
+        return jobs;
+    }
+
 
     /** Given a job ID, return data about the job.
      *

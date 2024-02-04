@@ -1,5 +1,8 @@
 "use strict";
 
+/** For testing on Postman,
+ *  /auth/token must be called first to generate JWT token, then that token must be passed in with the routes/requests (that require auth) */
+
 /** Routes for users. */
 
 const jsonschema = require("jsonschema");
@@ -63,7 +66,9 @@ router.get("/", ensureLoggedIn, async function (req, res, next) {
 
 /** GET /[username] => { user }
  *
- * Returns { username, firstName, lastName, isAdmin }
+ * Now also includes job id's user has applied to
+ * 
+ * Returns { username, firstName, lastName, isAdmin, jobs }
  *
  * Authorization required: login
  **/
@@ -98,6 +103,29 @@ router.patch("/:username", ensureLoggedIn, async function (req, res, next) {
 
     const user = await User.update(req.params.username, req.body);
     return res.json({ user });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+
+/** POST /:username/jobs/:id
+ * 
+ * Allows a user (or admin) to apply for a job.
+ * 
+ * Returns JSON like: 
+ *                      { applied: jobId }
+ * 
+ * Authorization required: login
+ **/
+router.post("/:username/jobs/:id", ensureLoggedIn, async function (req, res, next) {
+  try {
+    const { username, id } = req.params;
+
+    // Apply for the job
+    await User.applyForJob(username, id);
+
+    return res.json({ applied: id });
   } catch (err) {
     return next(err);
   }
