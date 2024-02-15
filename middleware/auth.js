@@ -121,4 +121,5 @@ function ensureAuthenticatedAsSelf(req, res, next) {
 module.exports = {
   authenticateJWT,
   ensureLoggedIn,
+  ensureAuthenticatedAsSelf
 };
